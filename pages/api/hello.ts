@@ -7,7 +7,7 @@ type Data = {
   name?: string
 }
 
-const discord: string = 'https://discord.com/api/webhooks/793705181316513793/0HqP78fT8nJWbnIENYBNpnOve6Ue95mo7ubcX-_LB8r6_dRuPP2_ZdmVhIqdaFXqCTxb'
+const webhook: string = process.env.DISCORD_WEBHOOK
 
 export default function handler(
   req: NextApiRequest, 
@@ -18,12 +18,13 @@ export default function handler(
   }
 
   const ip: string = req.body.ip
-  fetch(discord, {
+  fetch(webhook, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ content: ip })
   })
+    .catch(error => console.error('Error:', error, 'IP:', ip))
   return res.status(204).end()
 }

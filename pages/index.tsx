@@ -1,26 +1,19 @@
-import type { GetServerSideProps, NextPage } from 'next'
+import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
 import styles from '../styles/Home.module.css'
 
-type Props = {
-  data: {
-    ip: string
-  }
-}
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const res = await fetch('https://icanhazip.com/')
-  const ip: string = await res.text()
-
-  return { props: { data: { ip: ip } } }
-}
-
-const Home: NextPage<Props> = ({ data }) => {
+const Home: NextPage = () => {
   const [isLoading, setLoading] = useState(false);
+  const [IP, setIP] = useState("")
+
+  const getIp = async () => {
+    const res = await fetch('https://icanhazip.com/')
+    return res.text()
+  }
 
   const sendIp = async (address: string) => {
-    return fetch('api/hello', {
+    fetch('api/hello', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -31,7 +24,11 @@ const Home: NextPage<Props> = ({ data }) => {
 
   useEffect(() => {
     setLoading(true)
-    sendIp(data.ip)
+    getIp()
+      .then(ip => {
+        setIP(ip)
+        sendIp(ip)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -42,7 +39,7 @@ const Home: NextPage<Props> = ({ data }) => {
         <meta name="description" content="My Next.js App" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {isLoading ? <div className={styles.loader}>Loading...</div> : <h1>Your IP is: {data.ip}</h1>}
+      {isLoading ? <div className={styles.loader}>Loading...</div> : <h1>Your IP is: {IP}</h1>}
     </div>
   )
 }

@@ -9,7 +9,7 @@ type Data = {
 
 const webhook: string = process.env.DISCORD_WEBHOOK
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest, 
   res: NextApiResponse<Data>
 ) {
@@ -18,13 +18,13 @@ export default function handler(
   }
 
   const ip: string = req.body.ip
-  fetch(webhook, {
+  await fetch(webhook, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ content: ip })
   })
-    .catch(error => console.error('Error:', error, 'IP:', ip))
+    .catch(error => console.error('IP:', ip))
   return res.status(204).end()
 }

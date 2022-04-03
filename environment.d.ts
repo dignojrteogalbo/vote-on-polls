@@ -1,7 +1,8 @@
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
-            DISCORD_WEBHOOK: string;
+            DISCORD_WEBHOOK: string
+            NEXT_PUBLIC_FIREBASE_DATABASE_URL: string
         }
     }
 }

@@ -1,4 +1,5 @@
 import type { NextPage } from 'next'
+import Link from 'next/link'
 import Head from 'next/head'
 import React, { useEffect, useState } from 'react'
 import { Field, Form, Formik, FormikHelpers } from 'formik'
@@ -128,8 +129,8 @@ const Create: NextPage = () => {
             </Formik>
             {submitted && !error && 
                 <div>
-                    <p>It will take a moment for your poll to appear in the <a href="/">home page</a>.</p>
-                    <p>You can visit your poll now at: <a href={`/vote/${createdPath}`}>{window.location.hostname}/vote/{createdPath}</a></p>
+                    <p>It will take a moment for your poll to appear in the <Link passHref href="/">home page</Link>.</p>
+                    <p>You can visit your poll now at: <Link passHref href={`/vote/${createdPath}`}>{window.location.hostname}/vote/{createdPath}</Link></p>
                 </div>
             }
             {submitted && error &&

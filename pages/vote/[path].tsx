@@ -56,7 +56,7 @@ const Vote: NextPage<Response> = (props) => {
             <h1>{title}</h1>
             {author && <h3>Created by: {author}</h3>}
             {question && <h1>{question}</h1>}
-            <Choices firstOption={firstOption} secondOption={secondOption} title={title}/>
+            <Choices firstOption={firstOption} secondOption={secondOption} path={path}/>
         </div>
     )
 }

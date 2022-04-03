@@ -46,8 +46,8 @@ const Home: NextPage<Response> = (props) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <ul>
-      {polls.map(path => 
-        <li>
+      {polls.map((path, key) => 
+        <li key={key}>
           <Link href={`/vote/${path}`}>
             <button>Vote in {path}</button>
           </Link>

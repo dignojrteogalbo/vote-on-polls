@@ -33,15 +33,8 @@ const Choices: FunctionComponent<ChoicesProps> = ({ firstOption, secondOption, t
     }
 
     useEffect(() => {
-        const fetchData = async () => {
-            const res = await fetch(`${database}polls/${title}.json`)
-            return res.json()
-        }
-
-        fetchData().then(data => {
-            setFirstOptionVotes(data.firstOption.votes)
-            setSecondOptionVotes(data.secondOption.votes)
-        })
+        setFirstOptionVotes(firstOption.votes)
+        setSecondOptionVotes(secondOption.votes)
     }, [choice])
 
     return(

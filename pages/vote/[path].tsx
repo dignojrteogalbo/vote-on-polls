@@ -1,4 +1,4 @@
-import type { NextPage, GetStaticProps } from 'next'
+import type { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
@@ -12,6 +12,7 @@ type Option = {
 }
 
 type Response = {
+    title: string,
     author?: string,
     question?: string,
     firstOption: Option,
@@ -22,8 +23,28 @@ const database = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
 
 const Vote: NextPage<Response> = (props) => {
     const router = useRouter()
-    const { title } = router.query
-    const { author, firstOption, secondOption, question } = props
+    const { path } = router.query
+    const [title, setTitle] = useState(props.title)
+    const [author, setAuthor] = useState(props.author ? props.author : '')
+    const [question, setQuestion] = useState(props.question ? props.question : '')
+    const [firstOption, setFirstOption] = useState(props.firstOption)
+    const [secondOption, setSecondOption] = useState(props.secondOption)
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const res = await fetch(`${database}polls/${path}.json`)
+            return res.json()
+        }
+
+        fetchData()
+            .then(data => {
+                setTitle(data.title)
+                setAuthor(data.author ? data.author : '')
+                setQuestion(data.question ? data.question : '')
+                setFirstOption(data.firstOption)
+                setSecondOption(data.secondOption)
+            })
+    }, [])
 
     return (
         <div className={styles.container}>
@@ -43,7 +64,7 @@ const Vote: NextPage<Response> = (props) => {
 export default Vote
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-    const res = await fetch(`${database}polls/${params?.title}.json`)
+    const res = await fetch(`${database}polls/${params?.path}.json`)
     const data = await res.json()
 
     if (!data) {
@@ -53,11 +74,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     return { props: data, revalidate: 60 }
 }
 
-export async function getStaticPaths() {
+export const getStaticPaths: GetStaticPaths = async () => {
     const queries = await fetch(`${database}polls.json?shallow=true`)
         .then(res => res.json())
     const paths = Object.keys(queries).map(path => ({
-        params: { title: path }
+        params: { path: path }
     }))
 
     return {

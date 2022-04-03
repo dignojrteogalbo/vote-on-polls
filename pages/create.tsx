@@ -1,4 +1,5 @@
 import type { NextPage } from 'next'
+import { useRouter } from "next/router"
 import Head from 'next/head'
 import React, { useEffect, useState } from 'react'
 import { Field, Form, Formik, FormikHelpers } from 'formik'
@@ -19,6 +20,8 @@ type MyForm = {
 const database = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
 
 const Create: NextPage = () => {
+    const router = useRouter()
+
     const initialValues: MyForm = {
         title: '',
         author: '',
@@ -53,7 +56,6 @@ const Create: NextPage = () => {
                 votes: 0
             }
         }
-        console.log(body, path)
         await fetch(`${database}polls/${path}.json`, {
             method: 'PUT',
             headers: {
@@ -61,7 +63,6 @@ const Create: NextPage = () => {
             },
             body: JSON.stringify(body)
         })
-        console.log(title, question, firstOption, secondOption)
     }
 
     const handleEmojiSelect = (emoji: EmojiData) => {
@@ -94,6 +95,7 @@ const Create: NextPage = () => {
                     setSubmitting(true)
                     createPoll(values)
                     setSubmitting(false)
+                    router.push('/')
                 }}
             >
                 <Form>

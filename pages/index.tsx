@@ -68,5 +68,5 @@ export const getStaticProps: GetStaticProps = async () => {
   const res = await fetch(`${database}polls.json?shallow=true`)
   const data = await res.json()
 
-  return { props: { data }, revalidate: 60 }
+  return { props: { data }, revalidate: 15 }
 }

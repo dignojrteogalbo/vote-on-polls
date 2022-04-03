@@ -3,7 +3,7 @@ import Head from 'next/head'
 import React, { useEffect, useState } from 'react'
 import { Field, Form, Formik, FormikHelpers } from 'formik'
 import 'emoji-mart/css/emoji-mart.css'
-import { EmojiData, Picker } from 'emoji-mart'
+import { EmojiData, BaseEmoji, Picker } from 'emoji-mart'
 import styles from '../styles/Create.module.css'
 
 type MyForm = {
@@ -65,10 +65,11 @@ const Create: NextPage = () => {
     }
 
     const handleEmojiSelect = (emoji: EmojiData) => {
+        const { native } = emoji as any
         if (focus === "firstEmoji") {
-            setFirstEmoji(emoji.native)
+            setFirstEmoji(native)
         } else if (focus === "secondEmoji") {
-            setSecondEmoji(emoji.native)
+            setSecondEmoji(native)
         }
     }
 

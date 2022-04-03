@@ -48,7 +48,7 @@ const Choices: FunctionComponent<ChoicesProps> = ({ firstOption, secondOption, t
         <div>
             <button 
                 key={1} 
-                disabled={choice === 1}
+                // disabled={choice === 1}
                 onClick={(e) => castVote(e, 1)}
             >
                 <p>{firstOption.description}, {firstOption.emoji}, {firstOptionVotes}</p>
@@ -56,7 +56,7 @@ const Choices: FunctionComponent<ChoicesProps> = ({ firstOption, secondOption, t
             <button 
                 key={2} 
                 onClick={(e) => castVote(e, 2)}
-                disabled={choice === 2}
+                // disabled={choice === 2}
             >
                 <p>{secondOption.description}, {secondOption.emoji}, {secondOptionVotes}</p>
             </button>

@@ -1,5 +1,4 @@
 import type { NextPage } from 'next'
-import { useRouter } from "next/router"
 import Head from 'next/head'
 import React, { useEffect, useState } from 'react'
 import { Field, Form, Formik, FormikHelpers } from 'formik'
@@ -20,8 +19,6 @@ type MyForm = {
 const database = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
 
 const Create: NextPage = () => {
-    const router = useRouter()
-
     const initialValues: MyForm = {
         title: '',
         author: '',
@@ -32,6 +29,9 @@ const Create: NextPage = () => {
         secondEmoji: '2️⃣'
     }
 
+    const [submitted, setSubmitted] = useState(false)
+    const [createdPath, setCreatedPath] = useState('')
+    const [error, setError] = useState(false)
     const [firstEmoji, setFirstEmoji] = useState(initialValues.firstEmoji)
     const [secondEmoji, setSecondEmoji] = useState(initialValues.secondEmoji)
     const [focus, setFocus] = useState('')
@@ -63,6 +63,11 @@ const Create: NextPage = () => {
             },
             body: JSON.stringify(body)
         })
+            .then(() => setCreatedPath(path))
+            .catch(err => {
+                console.log(err)
+                setError(true)
+            })
     }
 
     const handleEmojiSelect = (emoji: EmojiData) => {
@@ -95,7 +100,7 @@ const Create: NextPage = () => {
                     setSubmitting(true)
                     createPoll(values)
                     setSubmitting(false)
-                    router.push('/')
+                    setSubmitted(true)
                 }}
             >
                 <Form>
@@ -121,6 +126,17 @@ const Create: NextPage = () => {
                     <button type="submit">Submit</button>
                 </Form>
             </Formik>
+            {submitted && !error && 
+                <div>
+                    <p>It will take a moment for your poll to appear in the <a href="/">home page</a>.</p>
+                    <p>You can visit your poll now at: <a href={`/vote/${createdPath}`}>{window.location.hostname}/vote/{createdPath}</a></p>
+                </div>
+            }
+            {submitted && error &&
+                <div>
+                    <p>An error has ocurred when creating poll.</p>
+                </div>
+            }
         </div>
     )
 }

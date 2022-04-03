@@ -129,8 +129,8 @@ const Create: NextPage = () => {
             </Formik>
             {submitted && !error && 
                 <div>
-                    <p>It will take a moment for your poll to appear in the <Link passHref href="/">home page</Link>.</p>
-                    <p>You can visit your poll now at: <Link passHref href={`/vote/${createdPath}`}>{window.location.hostname}/vote/{createdPath}</Link></p>
+                    <p>It will take a moment for your poll to appear in the <Link passHref href="/"><a>home page</a></Link>.</p>
+                    <p>You can visit your poll now at: <Link passHref href={`/vote/${createdPath}`}><a>{window.location.hostname}/vote/{createdPath}</a></Link></p>
                 </div>
             }
             {submitted && error &&

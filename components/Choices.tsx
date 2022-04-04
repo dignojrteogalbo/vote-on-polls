@@ -1,4 +1,7 @@
-import React, { useState, FunctionComponent, useEffect } from 'react';
+import React, { useState, FunctionComponent, useEffect } from 'react'
+import { ref, onValue } from 'firebase/database'
+import { database } from '../firebase/clientApp'
+import styles from './styles/Choices.module.css'
 
 type Option = {
     description: string,
@@ -12,8 +15,6 @@ type ChoicesProps = {
     path: string | string[] | undefined
 }
 
-const database = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
-
 const Choices: FunctionComponent<ChoicesProps> = ({ firstOption, secondOption, path }) => {
     const [firstOptionVotes, setFirstOptionVotes] = useState(firstOption.votes)
     const [secondOptionVotes, setSecondOptionVotes] = useState(secondOption.votes)
@@ -21,39 +22,47 @@ const Choices: FunctionComponent<ChoicesProps> = ({ firstOption, secondOption, p
 
     const castVote = async (event: React.MouseEvent<HTMLButtonElement>, option: number) => {
         event.preventDefault()
-        let [route, vote] = (option === 1) ? ['firstOption', firstOptionVotes] : ['secondOption', secondOptionVotes]
-        await fetch(`${database}polls/${path}/${route}.json`, {
-            method: 'PATCH',
+        let route = (option === 1) ? 'firstOption' : 'secondOption'
+        const body = {
+            path: path,
+            route: route
+        }
+        await fetch('/api/vote', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ votes: vote + 1 })
+            body: JSON.stringify(body)
         })
-        setChoice(option)
     }
 
     useEffect(() => {
-        const fetchData = async () => {
-            const res = await fetch(`${database}polls/${path}.json`)
-            return res.json()
-        }
+        const firstRef = ref(database, `polls/${path}/firstOption/votes`)
+        const secondRef = ref(database, `polls/${path}/secondOption/votes`)
 
-        fetchData().then(data => {
-            setFirstOptionVotes(data.firstOption.votes)
-            setSecondOptionVotes(data.secondOption.votes)
+        onValue(firstRef, (snapshot) => {
+            const data = snapshot.val();
+            setFirstOptionVotes(data)
         })
-    }, [choice])
+
+        onValue(secondRef, (snapshot) => {
+            const data = snapshot.val();
+            setSecondOptionVotes(data)
+        })
+    }, [])
 
     return(
         <div>
             <button 
+                className="left"
                 key={1} 
                 // disabled={choice === 1}
                 onClick={(e) => castVote(e, 1)}
             >
                 <p>{firstOption.description}, {firstOption.emoji}, {firstOptionVotes}</p>
             </button>
-            <button 
+            <button
+                className="right"
                 key={2} 
                 onClick={(e) => castVote(e, 2)}
                 // disabled={choice === 2}

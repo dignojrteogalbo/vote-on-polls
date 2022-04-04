@@ -20,7 +20,7 @@ const Home: NextPage<Response> = (props) => {
   }
 
   const sendIp = async (address: string) => {
-    fetch('api/hello', {
+    fetch('/api/hello', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -32,10 +32,13 @@ const Home: NextPage<Response> = (props) => {
   useEffect(() => {
     const getPolls = Object.keys(data)
     setPolls(getPolls)
-    getIp()
-      .then(ip => {
-        sendIp(ip)
-      })
+
+    if (process.env.COLLECTING) {
+      getIp()
+        .then(ip => {
+          sendIp(ip)
+        })
+    }
   }, [])
 
   return (

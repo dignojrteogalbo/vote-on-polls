@@ -6,6 +6,7 @@ import { Field, Form, Formik, FormikHelpers } from 'formik'
 import 'emoji-mart/css/emoji-mart.css'
 import { EmojiData, BaseEmoji, Picker } from 'emoji-mart'
 import styles from '../styles/Create.module.css'
+import { setTimeout } from 'timers'
 
 type MyForm = {
     title: string,
@@ -40,34 +41,32 @@ const Create: NextPage = () => {
     const createPoll = async (values: MyForm) => {
         const { title, author, question, firstOption, secondOption } = values
         let path = title.toLowerCase()
-        path = path.replace(/[^a-zA-Z0-9]/g, "")
         path = path.replace(/\s+/g, '-')
+        path = path.replace(/[^a-zA-Z0-9-]/g, "")
         const body = {
+            path: path,
             title: title,
             author: author,
             question: question,
-            firstOption: {
-                description: firstOption,
-                emoji: firstEmoji,
-                votes: 0
-            },
-            secondOption: {
-                description: secondOption,
-                emoji: secondEmoji,
-                votes: 0
-            }
+            firstOption: firstOption,
+            secondOption: secondOption,
+            firstEmoji: firstEmoji,
+            secondEmoji: secondEmoji
         }
-        await fetch(`${database}polls/${path}.json`, {
-            method: 'PUT',
+        await fetch('/api/create', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
         })
-            .then(() => setCreatedPath(path))
-            .catch(err => {
-                console.log(err)
-                setError(true)
+            .then(res => {
+                if (!res.ok) {
+                    setError(true)
+                }
+
+                setCreatedPath(path)
+                setSubmitted(true)
             })
     }
 
@@ -81,10 +80,31 @@ const Create: NextPage = () => {
     }
 
     const handleClick = (event: React.MouseEvent<HTMLLabelElement>) => {
+        setSubmitted(false)
+        setError(false)
+
         if (event.currentTarget.htmlFor === 'firstEmoji' || event.currentTarget.htmlFor === 'secondEmoji') {
             setFocus(event.currentTarget.htmlFor)
         } else {
             setFocus('')
+        }
+    }
+
+    let submitMessage = null
+    if (submitted) {
+        if (error) {
+            submitMessage = (
+                <div>
+                    <p>An error has occurred when creating poll.</p>
+                </div>
+            )
+        } else {
+            submitMessage = (
+                <div>
+                    <p>It will take a moment for your poll to appear in the <Link href="/"><a>home page</a></Link>.</p>
+                    <p>You can visit your poll now at: <Link href={`/vote/${createdPath}`}><a>{window.location.hostname}/vote/{createdPath}</a></Link></p>
+                </div>
+            )
         }
     }
 
@@ -101,7 +121,6 @@ const Create: NextPage = () => {
                     setSubmitting(true)
                     createPoll(values)
                     setSubmitting(false)
-                    setSubmitted(true)
                 }}
             >
                 <Form>
@@ -127,17 +146,7 @@ const Create: NextPage = () => {
                     <button type="submit">Submit</button>
                 </Form>
             </Formik>
-            {submitted && !error && 
-                <div>
-                    <p>It will take a moment for your poll to appear in the <Link passHref href="/"><a>home page</a></Link>.</p>
-                    <p>You can visit your poll now at: <Link passHref href={`/vote/${createdPath}`}><a>{window.location.hostname}/vote/{createdPath}</a></Link></p>
-                </div>
-            }
-            {submitted && error &&
-                <div>
-                    <p>An error has ocurred when creating poll.</p>
-                </div>
-            }
+            {submitMessage}
         </div>
     )
 }

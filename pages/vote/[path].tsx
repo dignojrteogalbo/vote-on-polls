@@ -2,8 +2,11 @@ import type { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import styles from '../../styles/Vote.module.css'
 import Choices from '../../components/Choices'
+import { ref, get, child, DatabaseReference } from 'firebase/database'
+import { database } from '../../firebase/clientApp'
+import Cookies from 'universal-cookie';
+import styles from '../../styles/Vote.module.css'
 
 type Option = {
     description: string,
@@ -19,7 +22,7 @@ type Response = {
     secondOption: Option
 }
 
-const database = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
+const cookies = new Cookies();
 
 const Vote: NextPage<Response> = (props) => {
     const router = useRouter()
@@ -29,22 +32,35 @@ const Vote: NextPage<Response> = (props) => {
     const [question, setQuestion] = useState(props.question ? props.question : '')
     const [firstOption, setFirstOption] = useState(props.firstOption)
     const [secondOption, setSecondOption] = useState(props.secondOption)
+    const [canCastVote, setCanCastVote] = useState(true)
 
     useEffect(() => {
-        const fetchData = async () => {
-            const res = await fetch(`${database}polls/${path}.json`)
-            return res.json()
+        const getPollData = async (ref: DatabaseReference, path: string) => {
+            await get(child(ref, path))
+                .then(snapshot => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val()
+                        setTitle(data.title)
+                        setAuthor(data.author)
+                        setQuestion(data.question)
+                        setFirstOption(data.firstOption)
+                        setSecondOption(data.secondOption)
+                    }
+                })
+                .catch(err => console.error(err))
         }
 
-        fetchData()
-            .then(data => {
-                setTitle(data.title)
-                setAuthor(data.author ? data.author : '')
-                setQuestion(data.question ? data.question : '')
-                setFirstOption(data.firstOption)
-                setSecondOption(data.secondOption)
-            })
+        const pollsRef = ref(database, `polls`)
+        getPollData(pollsRef, `${path}`)
+        setCanCastVote(!cookies.get('VOTED'))
     }, [])
+
+    const oneDay = 1000 * 60 * 60 * 24
+    const voteActivity = () => {
+        const expiry = new Date(Date.now() + oneDay)
+        cookies.set('VOTED', true, { path: `/vote/${path}`, expires: expiry })
+        setCanCastVote(!cookies.get('VOTED'))
+    }
 
     return (
         <div className={styles.container}>
@@ -56,7 +72,14 @@ const Vote: NextPage<Response> = (props) => {
             <h1>{title}</h1>
             {author && <h3>Created by: {author}</h3>}
             {question && <h1>{question}</h1>}
-            <Choices firstOption={firstOption} secondOption={secondOption} path={path}/>
+            <Choices
+                canCastVote={canCastVote}
+                firstOption={firstOption} 
+                secondOption={secondOption} 
+                voteActivity={voteActivity} 
+                path={path}
+            />
+            {!canCastVote && <p>You have already voted for this poll today.</p>}
         </div>
     )
 }
@@ -64,10 +87,25 @@ const Vote: NextPage<Response> = (props) => {
 export default Vote
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-    const res = await fetch(`${database}polls/${params?.path}.json`)
-    const data = await res.json()
+    const path = params?.path
+    const pollsRef = ref(database, `polls`)
+    let notFound = false
+    let data = {}
+    await get(child(pollsRef, `${path}`))
+        .then(snapshot => {
+            if (snapshot.exists()) {
+                data = snapshot.val()
+            } else {
+                notFound = true
+                console.log('not found')
+            }
+        })
+        .catch(err => {
+            console.error(err)
+            notFound = true
+        })
 
-    if (!data) {
+    if (notFound) {
         return { notFound: true }
     }
 
@@ -75,7 +113,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-    const queries = await fetch(`${database}polls.json?shallow=true`)
+    const queries = await fetch(`${process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL}polls.json?shallow=true`)
         .then(res => res.json())
     const paths = Object.keys(queries).map(path => ({
         params: { path: path }

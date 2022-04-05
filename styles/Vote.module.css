@@ -1,0 +1,18 @@
+.info {
+    width: autho;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Smartphones (portrait) ----------- */
+@media screen 
+and (max-width : 850px) {
+    .info {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+}

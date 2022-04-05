@@ -52,26 +52,29 @@ const Vote: NextPage<Response> = (props) => {
 
         const pollsRef = ref(database, `polls`)
         getPollData(pollsRef, `${path}`)
-        setCanCastVote(!cookies.get('VOTED'))
+        setCanCastVote(!cookies.get(`/vote/${path}`))
     }, [])
 
     const oneDay = 1000 * 60 * 60 * 24
     const voteActivity = () => {
         const expiry = new Date(Date.now() + oneDay)
-        cookies.set('VOTED', true, { path: `/vote/${path}`, expires: expiry })
-        setCanCastVote(!cookies.get('VOTED'))
+        cookies.set(`/vote/${path}`, true, { expires: expiry })
+        setCanCastVote(!cookies.get(`/vote/${path}`))
     }
 
     return (
-        <div className={styles.container}>
+        <>
             <Head>
                 <title>{question ? question: `Vote for ${title}`}</title>
                 <meta name="description" content={question ? question : `Vote for ${title}`} />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <h1>{title}</h1>
-            {author && <h3>Created by: {author}</h3>}
-            {question && <h1>{question}</h1>}
+            <div className={styles.info}>
+                <h1>{title}</h1>
+                {author && <h3>Created by: {author}</h3>}
+                {question && <h1>{question}</h1>}
+                {!canCastVote && <p>You have already voted for this poll today.</p>}
+            </div>
             <Choices
                 canCastVote={canCastVote}
                 firstOption={firstOption} 
@@ -79,8 +82,7 @@ const Vote: NextPage<Response> = (props) => {
                 voteActivity={voteActivity} 
                 path={path}
             />
-            {!canCastVote && <p>You have already voted for this poll today.</p>}
-        </div>
+        </>
     )
 }
 

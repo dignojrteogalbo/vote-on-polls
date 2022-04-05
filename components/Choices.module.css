@@ -1,0 +1,52 @@
+.container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.applyBlur {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.applyBlur > .voteButton {
+    display: block;
+    height: 100%;
+    width: 100%;
+    filter: blur(8px);
+}
+
+.voteButton {
+    display: relative;
+    font-size: 1000%;
+}
+
+.voteButton:hover {
+    filter: brightness(85%);
+    -webkit-filter: brightness(85%);
+}
+
+.applyBlur > .voteButton:disabled {
+    filter: brightness(85%) blur(8px)
+}
+
+.voteContent {
+    filter: blur(0);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 50px;
+    text-align: center;
+    pointer-events: none;
+}
+
+/* Smartphones (portrait) ----------- */
+@media screen 
+and (max-width : 850px) {
+    .container {
+        flex-direction: column;
+    }
+}

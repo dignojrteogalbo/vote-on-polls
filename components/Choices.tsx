@@ -1,8 +1,8 @@
-import React, { useState, FunctionComponent, useEffect } from 'react'
+import React, { useState, FunctionComponent, useEffect, CSSProperties } from 'react'
 import { ref, onValue } from 'firebase/database'
 import { database } from '../firebase/clientApp'
 import Cookies from 'universal-cookie';
-import styles from './styles/Choices.module.css'
+import styles from './Choices.module.css'
 
 type Option = {
     description: string,
@@ -27,7 +27,7 @@ const Choices: FunctionComponent<ChoicesProps> = ({ canCastVote, firstOption, se
 
     const castVote = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault()
-        let route = event.currentTarget.className
+        let route = event.currentTarget.name
         const body = {
             path: path,
             route: route
@@ -58,23 +58,29 @@ const Choices: FunctionComponent<ChoicesProps> = ({ canCastVote, firstOption, se
     }, [])
 
     return(
-        <div>
-            <button
-                disabled={!canCastVote}
-                className='firstOption'
-                key={1} 
-                onClick={castVote}
-            >
-                <p>{firstOption.description}, {firstOption.emoji}, {firstOptionVotes}</p>
-            </button>
-            <button
-                disabled={!canCastVote}
-                className='secondOption'
-                key={2} 
-                onClick={castVote}
-            >
-                <p>{secondOption.description}, {secondOption.emoji}, {secondOptionVotes}</p>
-            </button>
+        <div className={styles.container}>
+            <div className={styles.applyBlur}>
+                <button
+                    name='firstOption'
+                    disabled={!canCastVote}
+                    className={`${styles.voteButton} ${styles.firstOption}`}
+                    onClick={castVote}
+                >
+                    {firstOption.emoji}
+                </button>
+                <div className={styles.voteContent}>{firstOption.description}<br />{firstOptionVotes}</div>
+            </div>
+            <div className={styles.applyBlur}>
+                <button
+                name='secondOption'
+                    disabled={!canCastVote}
+                    className={`${styles.voteButton} ${styles.secondOption}`}
+                    onClick={castVote}
+                >
+                    {secondOption.emoji}
+                </button>
+                <div className={styles.voteContent}>{secondOption.description}<br />{secondOptionVotes}</div>
+            </div>
         </div>
     )
 }

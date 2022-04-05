@@ -1,37 +1,44 @@
 import type { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState, createContext } from 'react'
 import Choices from '../../components/Choices'
-import { ref, get, child, DatabaseReference } from 'firebase/database'
+import { ref, get, child, DatabaseReference, onValue } from 'firebase/database'
 import { database } from '../../firebase/clientApp'
 import Cookies from 'universal-cookie';
 import styles from '../../styles/Vote.module.css'
+import { Poll } from './poll'
 
-type Option = {
-    description: string,
-    emoji: string,
-    votes: number
+const initialPoll: Poll = {
+    title: '',
+    firstOption: {
+        description: '',
+        emoji: '',
+        votes: 0
+    },
+    secondOption: {
+        description: '',
+        emoji: '',
+        votes: 0
+    }
 }
 
-type Response = {
-    title: string,
-    author?: string,
-    question?: string,
-    firstOption: Option,
-    secondOption: Option
+type VoteProps = {
+    data: any
 }
+
+export const PollContext = createContext({
+    poll: initialPoll,
+    path: ''
+})
 
 const cookies = new Cookies();
 
-const Vote: NextPage<Response> = (props) => {
+const Vote: NextPage<VoteProps> = ({ data }) => {
     const router = useRouter()
-    const { path } = router.query
-    const [title, setTitle] = useState(props.title)
-    const [author, setAuthor] = useState(props.author ? props.author : '')
-    const [question, setQuestion] = useState(props.question ? props.question : '')
-    const [firstOption, setFirstOption] = useState(props.firstOption)
-    const [secondOption, setSecondOption] = useState(props.secondOption)
+    const path = `${router.query.path}`
+    const [poll, setPoll] = useState<Poll>(data)
+    const value = { poll, path: path }
     const [canCastVote, setCanCastVote] = useState(true)
 
     useEffect(() => {
@@ -40,19 +47,24 @@ const Vote: NextPage<Response> = (props) => {
                 .then(snapshot => {
                     if (snapshot.exists()) {
                         const data = snapshot.val()
-                        setTitle(data.title)
-                        setAuthor(data.author)
-                        setQuestion(data.question)
-                        setFirstOption(data.firstOption)
-                        setSecondOption(data.secondOption)
+                        setPoll(data)
                     }
                 })
                 .catch(err => console.error(err))
         }
 
-        const pollsRef = ref(database, `polls`)
-        getPollData(pollsRef, `${path}`)
+        const pollsRef = ref(database, 'polls')
+
+        if (!data) {
+            getPollData(pollsRef, path)
+        }
+
         setCanCastVote(!cookies.get(`/vote/${path}`))
+
+        onValue(child(pollsRef, path), (snapshot) => {
+            const data = snapshot.val();
+            setPoll(data)
+        })
     }, [])
 
     const oneDay = 1000 * 60 * 60 * 24
@@ -63,37 +75,31 @@ const Vote: NextPage<Response> = (props) => {
     }
 
     return (
-        <>
+        <PollContext.Provider value={value}>
             <Head>
-                <title>{question ? question: `Vote for ${title}`}</title>
-                <meta name="description" content={question ? question : `Vote for ${title}`} />
+                <title>{poll.question ? poll.question: `Vote for ${poll.title}`}</title>
+                <meta name="description" content={poll.question ? poll.question : `Vote for ${poll.title}`} />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className={styles.info}>
-                <h1>{title}</h1>
-                {author && <h3>Created by: {author}</h3>}
-                {question && <h1>{question}</h1>}
+                <h1>{poll.title}</h1>
+                {poll.author && <h3>Created by: {poll.author}</h3>}
+                {poll.question && <h1>{poll.question}</h1>}
                 {!canCastVote && <p>You have already voted for this poll today.</p>}
             </div>
-            <Choices
-                canCastVote={canCastVote}
-                firstOption={firstOption} 
-                secondOption={secondOption} 
-                voteActivity={voteActivity} 
-                path={path}
-            />
-        </>
+            <Choices canCastVote={canCastVote} voteActivity={voteActivity} />
+        </PollContext.Provider>
     )
 }
 
 export default Vote
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-    const path = params?.path
+    const path = `${params?.path}`
     const pollsRef = ref(database, `polls`)
     let notFound = false
     let data = {}
-    await get(child(pollsRef, `${path}`))
+    await get(child(pollsRef, path))
         .then(snapshot => {
             if (snapshot.exists()) {
                 data = snapshot.val()
@@ -111,7 +117,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         return { notFound: true }
     }
 
-    return { props: data, revalidate: 15 }
+    return { props: { data: data }, revalidate: 15 }
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {

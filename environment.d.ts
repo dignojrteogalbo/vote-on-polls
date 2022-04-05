@@ -9,7 +9,7 @@ declare global {
             NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: string
             NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: string
             NEXT_PUBLIC_FIREBASE_APP_ID: string
-            COLLECTING: boolean
+            COLLECTING: string
         }
     }
 }

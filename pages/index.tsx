@@ -2,17 +2,16 @@ import type { NextPage, GetStaticProps } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { ref, get, child, onValue } from 'firebase/database'
+import { database } from '../firebase/clientApp'
 import styles from '../styles/Home.module.css'
 
-type Response = {
-  data: string[]
+type HomeProps = {
+  data: any
 }
 
-const database = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
-
-const Home: NextPage<Response> = (props) => {
-  const { data } = props
-  const [polls, setPolls] = useState<string[]>([])
+const Home: NextPage<HomeProps> = ({ data }) => {
+  const [polls, setPolls] = useState<{ path: string; title: any }[]>(data.polls)
 
   const getIp = async () => {
     const res = await fetch('https://icanhazip.com/')
@@ -30,15 +29,24 @@ const Home: NextPage<Response> = (props) => {
   }
 
   useEffect(() => {
-    const getPolls = Object.keys(data)
-    setPolls(getPolls)
-
-    if (process.env.COLLECTING) {
-      getIp()
-        .then(ip => {
-          sendIp(ip)
-        })
+    if (process.env.COLLECTING === 'true') {
+      getIp().then(ip => sendIp(ip))
     }
+
+    const pollsRef = ref(database, 'polls')
+
+    onValue(child(pollsRef, '/'), (snapshot) => {
+      const newPolls: { path: string; title: any }[] = []
+
+      snapshot.forEach(child => {
+        newPolls.push({
+          path: `${child.key}`,
+          title: child.child('title').val()
+        })
+      })
+
+      setPolls(newPolls)
+    })
   }, [])
 
   return (
@@ -49,10 +57,10 @@ const Home: NextPage<Response> = (props) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <ul>
-      {polls.map((path, key) => 
-        <li key={key}>
-          <Link href={`/vote/${path}`}>
-            <button>Vote in {path}</button>
+      {polls.map(poll => 
+        <li key={poll.path}>
+          <Link href={`/vote/${poll.path}`}>
+            <button>Vote in {poll.title}</button>
           </Link>
         </li>
       )}
@@ -68,8 +76,18 @@ const Home: NextPage<Response> = (props) => {
 export default Home
 
 export const getStaticProps: GetStaticProps = async () => {
-  const res = await fetch(`${database}polls.json?shallow=true`)
-  const data = await res.json()
+  const polls: { path: string; title: any }[] = []
+  const pollsRef = ref(database, 'polls')
+  await get(pollsRef)
+    .then(snapshot => {
+      snapshot.forEach(child => {
+        polls.push({ 
+          path: `${child.key}`, 
+          title: child.child('title').val() 
+        })
+      })
+    })
+  const data = { polls: polls }
 
   return { props: { data }, revalidate: 15 }
 }

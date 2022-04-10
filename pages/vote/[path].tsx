@@ -3,7 +3,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState, createContext } from 'react'
 import Choices from '../../components/Choices'
-import { ref, get, child, DatabaseReference, onValue } from 'firebase/database'
+import { ref, get, child } from 'firebase/database'
 import { database } from '../../firebase/clientApp'
 import Cookies from 'universal-cookie';
 import styles from '../../styles/Vote.module.css'
@@ -38,33 +38,17 @@ const Vote: NextPage<VoteProps> = ({ data }) => {
     const router = useRouter()
     const path = `${router.query.path}`
     const [poll, setPoll] = useState<Poll>(data)
-    const value = { poll, path: path }
     const [canCastVote, setCanCastVote] = useState(true)
 
     useEffect(() => {
-        const getPollData = async (ref: DatabaseReference, path: string) => {
-            await get(child(ref, path))
-                .then(snapshot => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val()
-                        setPoll(data)
-                    }
-                })
-                .catch(err => console.error(err))
-        }
-
         const pollsRef = ref(database, 'polls')
 
         if (!data) {
-            getPollData(pollsRef, path)
+            get(child(pollsRef, path))
+                .then(snapshot => setPoll(snapshot.val()))
         }
 
         setCanCastVote(!cookies.get(`/vote/${path}`))
-
-        onValue(child(pollsRef, path), (snapshot) => {
-            const data = snapshot.val();
-            setPoll(data)
-        })
     }, [])
 
     const oneDay = 1000 * 60 * 60 * 24
@@ -75,10 +59,10 @@ const Vote: NextPage<VoteProps> = ({ data }) => {
     }
 
     return (
-        <PollContext.Provider value={value}>
+        <PollContext.Provider value={{ poll, path: path }}>
             <Head>
-                <title>{poll.question ? poll.question: `Vote for ${poll.title}`}</title>
-                <meta name="description" content={poll.question ? poll.question : `Vote for ${poll.title}`} />
+                <title>{poll.question ? poll.question: `Vote between ${poll.firstOption.description} or ${poll.secondOption.description}`}</title>
+                <meta name="description" content={`${poll.title}\nVote between ${poll.firstOption.description} or ${poll.secondOption.description}\n${poll.question}`} />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className={styles.info}>

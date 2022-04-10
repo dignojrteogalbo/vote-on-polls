@@ -7,7 +7,7 @@ type Data = {
   name?: string
 }
 
-const webhook: string = process.env.DISCORD_WEBHOOK
+const webhook: string = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK
 
 export default async function handler(
   req: NextApiRequest, 

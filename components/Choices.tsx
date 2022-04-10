@@ -1,6 +1,8 @@
-import React, { FunctionComponent, useContext } from 'react'
+import React, { FunctionComponent, useContext, useEffect, useState } from 'react'
 import styles from './Choices.module.css'
 import { PollContext } from '../pages/vote/[path]';
+import { database } from '../firebase/clientApp';
+import { ref, onValue, child } from 'firebase/database';
 
 type ChoicesProps = {
     canCastVote: boolean
@@ -9,6 +11,8 @@ type ChoicesProps = {
 
 const Choices: FunctionComponent<ChoicesProps> = ({ canCastVote, voteActivity }) => {
     const { poll, path } = useContext(PollContext)
+    const [firstOptionVotes, setFirstOptionVotes] = useState(poll.firstOption.votes)
+    const [secondOptionVotes, setSecondOptionVotes] = useState(poll.secondOption.votes)
 
     const castVote = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault()
@@ -27,6 +31,18 @@ const Choices: FunctionComponent<ChoicesProps> = ({ canCastVote, voteActivity })
         voteActivity()
     }
 
+    useEffect(() => {
+        const pollsRef = ref(database, 'polls')
+
+        onValue(child(pollsRef, `${path}/firstOption/votes`), (snapshot) => {
+            setFirstOptionVotes(snapshot.val())
+        })
+
+        onValue(child(pollsRef, `${path}/secondOption/votes`), (snapshot) => {
+            setSecondOptionVotes(snapshot.val())
+        })
+    }, [])
+
     return(
         <div className={styles.container}>
             <div className={styles.applyBlur}>
@@ -38,7 +54,7 @@ const Choices: FunctionComponent<ChoicesProps> = ({ canCastVote, voteActivity })
                 >
                     {poll.firstOption.emoji}
                 </button>
-                <div className={styles.voteContent}>{poll.firstOption.description}<br />{poll.firstOption.votes}</div>
+                <div className={styles.voteContent}>{poll.firstOption.description}<br />{firstOptionVotes}</div>
             </div>
             <div className={styles.applyBlur}>
                 <button
@@ -49,7 +65,7 @@ const Choices: FunctionComponent<ChoicesProps> = ({ canCastVote, voteActivity })
                 >
                     {poll.secondOption.emoji}
                 </button>
-                <div className={styles.voteContent}>{poll.secondOption.description}<br />{poll.secondOption.votes}</div>
+                <div className={styles.voteContent}>{poll.secondOption.description}<br />{secondOptionVotes}</div>
             </div>
         </div>
     )

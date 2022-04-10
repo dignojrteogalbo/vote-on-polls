@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ref, get, child, onValue } from 'firebase/database'
 import { database } from '../firebase/clientApp'
+import { Container, Card, Button, Divider, Menu } from 'semantic-ui-react'
 import styles from '../styles/Home.module.css'
 
 type HomeProps = {
@@ -14,7 +15,7 @@ const Home: NextPage<HomeProps> = ({ data }) => {
   const [polls, setPolls] = useState<{ path: string; title: any }[]>(data.polls)
 
   const getIp = async () => {
-    const res = await fetch('https://icanhazip.com/')
+    const res = await fetch('https://ipv4.icanhazip.com/')
     return res.text()
   }
 
@@ -29,8 +30,10 @@ const Home: NextPage<HomeProps> = ({ data }) => {
   }
 
   useEffect(() => {
-    if (process.env.COLLECTING === 'true') {
-      getIp().then(ip => sendIp(ip))
+    if (process.env.NEXT_PUBLIC_COLLECTING === 'true') {
+      getIp().then(ip => {
+        sendIp(ip)
+      })
     }
 
     const pollsRef = ref(database, 'polls')
@@ -38,10 +41,10 @@ const Home: NextPage<HomeProps> = ({ data }) => {
     onValue(child(pollsRef, '/'), (snapshot) => {
       const newPolls: { path: string; title: any }[] = []
 
-      snapshot.forEach(child => {
+      snapshot.forEach(poll => {
         newPolls.push({
-          path: `${child.key}`,
-          title: child.child('title').val()
+          path: `${poll.key}`,
+          title: poll.child('title').val()
         })
       })
 
@@ -50,26 +53,48 @@ const Home: NextPage<HomeProps> = ({ data }) => {
   }, [])
 
   return (
-    <div className={styles.container}>
+    <>
       <Head>
-        <title>My Next.js App</title>
-        <meta name="description" content="My Next.js App" />
+        <title>Make polls and vote!</title>
+        <meta name="description" content="Make polls and vote!" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ul>
-      {polls.map(poll => 
-        <li key={poll.path}>
-          <Link href={`/vote/${poll.path}`}>
-            <button>Vote in {poll.title}</button>
-          </Link>
-        </li>
-      )}
-      </ul>
-      <br />
-      <Link href="/create">
-        <button>Create a poll!</button>
-      </Link>
-    </div>
+      <Menu 
+        inverted 
+        fluid
+        fixed='top'
+        size='massive'
+      >
+        <Link href="/create">
+          <Menu.Item
+            active
+            key='create'
+            name='Create a poll!'
+            color='blue'
+          />
+        </Link>
+      </Menu>
+      <Container 
+        text
+        className={styles.container}
+      >
+        {/* <Divider hidden /> */}
+        <Card.Group>
+          {polls.map(poll =>
+            <Link href={`/vote/${poll.path}`} key={poll.path}>
+              <Card fluid link >
+                <Card.Content>
+                  <Card.Header>
+                    {poll.title}
+                  </Card.Header>
+                </Card.Content>
+              </Card>
+            </Link>
+          )}
+        </Card.Group>
+        <Divider hidden/>
+      </Container>
+    </>
   )
 }
 
@@ -80,10 +105,10 @@ export const getStaticProps: GetStaticProps = async () => {
   const pollsRef = ref(database, 'polls')
   await get(pollsRef)
     .then(snapshot => {
-      snapshot.forEach(child => {
+      snapshot.forEach(poll => {
         polls.push({ 
-          path: `${child.key}`, 
-          title: child.child('title').val() 
+          path: `${poll.key}`, 
+          title: poll.child('title').val() 
         })
       })
     })

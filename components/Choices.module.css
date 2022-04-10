@@ -19,6 +19,7 @@
 }
 
 .voteButton {
+    border: none;
     display: relative;
     font-size: 1000%;
 }
@@ -41,6 +42,7 @@
     font-size: 50px;
     text-align: center;
     pointer-events: none;
+    line-height: 100%;
 }
 
 /* Smartphones (portrait) ----------- */

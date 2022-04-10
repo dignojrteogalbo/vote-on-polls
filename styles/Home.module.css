@@ -1,5 +1,8 @@
 .container {
-  padding: 0 2rem;
+  background-color: #333;
+  padding-top: 4em;
+  padding-left: 3em;
+  padding-right: 3em;
 }
 
 .loader,

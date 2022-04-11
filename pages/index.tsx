@@ -4,8 +4,9 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { ref, get } from 'firebase/database'
 import { database } from '../firebase/clientApp'
-import { Container, Card, Divider, Menu } from 'semantic-ui-react'
+import { Container, Card, Divider } from 'semantic-ui-react'
 import styles from '../styles/Home.module.css'
+import { Navbar } from '../components/Navbar'
 
 type HomeProps = {
   data: {
@@ -20,6 +21,9 @@ type Poll = {
 
 const Home: NextPage<HomeProps> = ({ data }) => {
   const [polls, setPolls] = useState<Poll[]>(data.polls)
+  const navbarItems = [
+    { path: '/create', content: 'Create a poll!' }
+  ]
 
   return (
     <>
@@ -28,21 +32,7 @@ const Home: NextPage<HomeProps> = ({ data }) => {
         <meta name="description" content="Make polls and vote!" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Menu 
-        inverted 
-        fluid
-        fixed='top'
-        size='massive'
-      >
-        <Link href="/create">
-          <Menu.Item
-            active
-            key='create'
-            name='Create a poll!'
-            color='blue'
-          />
-        </Link>
-      </Menu>
+      <Navbar items={navbarItems} />
       <Container 
         text
         className={styles.container}

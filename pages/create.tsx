@@ -1,11 +1,12 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import React, { createContext, useEffect, useState } from 'react'
+import React, { createContext, useState } from 'react'
 import { Container, Menu, Segment } from 'semantic-ui-react'
 import styles from '../styles/Create.module.css'
 import 'emoji-mart/css/emoji-mart.css'
 import PollForm from '../components/PollForm'
+import { Navbar } from '../components/Navbar'
 
 export type MyFormProps = {
     path: string,
@@ -58,21 +59,7 @@ const Create: NextPage = () => {
                 <meta name="description" content="Create a Poll" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <Menu
-                inverted
-                fluid
-                fixed='top'
-                size='massive'
-            >
-                <Link href="/">
-                    <Menu.Item
-                        active
-                        key='home'
-                        name='Go to home!'
-                        color='blue'
-                    />
-                </Link>
-            </Menu>
+            <Navbar home />
             <Container className={styles.container}>
                 <FormContext.Provider value={value}>
                     <PollForm 

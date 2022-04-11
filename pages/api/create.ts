@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { get, ref, set, child } from 'firebase/database'
+import { ref, set } from 'firebase/database'
 import { database } from '../../firebase/clientApp'
 
 type Data = {

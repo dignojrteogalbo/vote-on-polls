@@ -1,5 +1,5 @@
 import { EmojiData, Picker } from 'emoji-mart'
-import { FunctionComponent, useContext, useEffect, useState } from 'react'
+import { FunctionComponent, useContext, useState } from 'react'
 import { Button, Form, Input, Message } from 'semantic-ui-react'
 import { FormContext, MyFormProps } from '../pages/create'
 import styles from './PollForm.module.css'

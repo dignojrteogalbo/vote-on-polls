@@ -51,11 +51,19 @@ const Vote: NextPage<VoteProps> = ({ data }) => {
         setCanCastVote(!cookies.get(`/vote/${path}`))
     }
 
+    const firstOption = data.firstOption.description.toLowerCase()
+    const firstEmoji = data.firstOption.emoji
+    const secondOption = data.secondOption.description.toLowerCase()
+    const secondEmoji = data.secondOption.emoji
+
+
     return (
         <PollContext.Provider value={{ poll: data, path: path }}>
             <Head>
-                <title>{data.question ? data.question: `Vote between ${data.firstOption.description} or ${data.secondOption.description}`}</title>
-                <meta name="description" content={`${data.title}\nVote between ${data.firstOption.description} or ${data.secondOption.description}\n${data.question}`} />
+                <title>{`Vote between ${firstOption} or ${secondOption}!`}</title>
+                <meta 
+                    name="description" 
+                    content={`${data.firstOption.votes} ${firstEmoji} votes for ${firstOption}! | ${data.secondOption.votes} ${secondEmoji} votes for ${secondOption}!\n${data.question ?? ''}`} />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <Navbar home />

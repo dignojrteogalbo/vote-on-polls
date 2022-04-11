@@ -30,10 +30,12 @@ export const Navbar: FunctionComponent<NavbarProps> = ({ home, items }) => {
             {home && homeItem}
             {items && 
             items.map(item => 
-                <Link href={item.path}>
+                <Link 
+                    key={item.path} 
+                    href={item.path}
+                >
                     <Menu.Item
                         active
-                        key={item.path}
                         name={item.content}
                         color='blue'
                     />

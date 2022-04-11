@@ -1,56 +1,25 @@
 import type { NextPage, GetStaticProps } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { ref, get, child, onValue } from 'firebase/database'
+import { useState } from 'react'
+import { ref, get } from 'firebase/database'
 import { database } from '../firebase/clientApp'
-import { Container, Card, Button, Divider, Menu } from 'semantic-ui-react'
+import { Container, Card, Divider, Menu } from 'semantic-ui-react'
 import styles from '../styles/Home.module.css'
 
 type HomeProps = {
-  data: any
+  data: {
+    polls: Poll[]
+  }
+}
+
+type Poll = {
+  path: string,
+  title: string
 }
 
 const Home: NextPage<HomeProps> = ({ data }) => {
-  const [polls, setPolls] = useState<{ path: string; title: any }[]>(data.polls)
-
-  const getIp = async () => {
-    const res = await fetch('https://ipv4.icanhazip.com/')
-    return res.text()
-  }
-
-  const sendIp = async (address: string) => {
-    fetch('/api/hello', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ ip: address })
-    })
-  }
-
-  useEffect(() => {
-    if (process.env.NEXT_PUBLIC_COLLECTING === 'true') {
-      getIp().then(ip => {
-        sendIp(ip)
-      })
-    }
-
-    const pollsRef = ref(database, 'polls')
-
-    onValue(child(pollsRef, '/'), (snapshot) => {
-      const newPolls: { path: string; title: any }[] = []
-
-      snapshot.forEach(poll => {
-        newPolls.push({
-          path: `${poll.key}`,
-          title: poll.child('title').val()
-        })
-      })
-
-      setPolls(newPolls)
-    })
-  }, [])
+  const [polls, setPolls] = useState<Poll[]>(data.polls)
 
   return (
     <>
@@ -78,7 +47,6 @@ const Home: NextPage<HomeProps> = ({ data }) => {
         text
         className={styles.container}
       >
-        {/* <Divider hidden /> */}
         <Card.Group>
           {polls.map(poll =>
             <Link href={`/vote/${poll.path}`} key={poll.path}>
@@ -101,7 +69,7 @@ const Home: NextPage<HomeProps> = ({ data }) => {
 export default Home
 
 export const getStaticProps: GetStaticProps = async () => {
-  const polls: { path: string; title: any }[] = []
+  const polls: { path: string; title: string }[] = []
   const pollsRef = ref(database, 'polls')
   await get(pollsRef)
     .then(snapshot => {

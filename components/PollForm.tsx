@@ -1,16 +1,17 @@
-import { EmojiData, Picker } from "emoji-mart"
-import { FunctionComponent, useContext, useState } from "react"
-import { Button, Form, Input } from "semantic-ui-react"
-import { FormContext, MyFormProps } from "../pages/create"
+import { EmojiData, Picker } from 'emoji-mart'
+import { FunctionComponent, useContext, useEffect, useState } from 'react'
+import { Button, Form, Input, Message } from 'semantic-ui-react'
+import { FormContext, MyFormProps } from '../pages/create'
 import styles from './PollForm.module.css'
 
 type PollFormProps = {
-    createPoll: (body: MyFormProps) => {}
-    className?: string
+    createPoll: (body: MyFormProps) => {},
+    className?: string,
+    disabled?: boolean,
 }
 
-const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) => {
-    const { loading } = useContext(FormContext)
+const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className, disabled }) => {
+    const { loading, fail } = useContext(FormContext)
 
     const [title, setTitle] = useState('')
     const [titleError, setTitleError] = useState<boolean | string>(false)
@@ -28,7 +29,7 @@ const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) =
         path: '',
         title: title,
         author: author,
-        description: description,
+        question: description,
         firstOption: firstOption,
         firstEmoji: firstEmoji,
         secondOption: secondOption,
@@ -44,7 +45,7 @@ const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) =
 
         let path = title.toLowerCase()
         path = path.replace(/\s+/g, '-')
-        path = path.replace(/[^a-zA-Z0-9-]/g, "")
+        path = path.replace(/[^a-zA-Z0-9-]/g, '')
         body.path = path
         createPoll(body)
     }
@@ -76,9 +77,9 @@ const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) =
 
     const handleEmojiSelect = (emoji: EmojiData) => {
         const { native } = emoji as any
-        if (focus === "firstEmoji") {
+        if (focus === 'firstEmoji') {
             setFirstEmoji(native)
-        } else if (focus === "secondEmoji") {
+        } else if (focus === 'secondEmoji') {
             setSecondEmoji(native)
         }
     }
@@ -97,8 +98,10 @@ const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) =
             size='large'
             onSubmit={handleSubmit}
             loading={loading}
+            error={fail}
         >
             <Form.Field
+                disabled={disabled}
                 required
                 id='title'
                 label='Title'
@@ -111,6 +114,7 @@ const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) =
                 />
             </Form.Field>
             <Form.Field
+                disabled={disabled}
                 id='author'
                 label='Author'
                 control={Input}
@@ -121,6 +125,7 @@ const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) =
                 />
             </Form.Field>
             <Form.Field
+                disabled={disabled}
                 id='description'
                 label='Description'
                 control={Input}
@@ -131,6 +136,7 @@ const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) =
                 />
             </Form.Field>
             <Form.Field 
+                disabled={disabled}
                 required
                 id='firstOption'
                 label='Option One'
@@ -142,9 +148,10 @@ const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) =
                     placeholder='Cats!' 
                 />
                 <label className={styles.emoji} onClick={handleClick} htmlFor="firstEmoji">{firstEmoji}</label>
-                {focus === "firstEmoji" && <Picker onClick={handleEmojiSelect} set="apple" showPreview={false} showSkinTones={false} />}
+                {focus === 'firstEmoji' && <Picker onClick={handleEmojiSelect} set="apple" showPreview={false} showSkinTones={false} />}
             </Form.Field>
             <Form.Field
+                disabled={disabled}
                 required
                 id='secondOption'
                 label='Option Two'
@@ -156,9 +163,14 @@ const PollForm: FunctionComponent<PollFormProps> = ({ createPoll, className }) =
                     placeholder='Dogs!' 
                 />
                 <label className={styles.emoji} onClick={handleClick} htmlFor="secondEmoji">{secondEmoji}</label>
-                {focus === "secondEmoji" && <Picker onClick={handleEmojiSelect} set="apple" showPreview={false} showSkinTones={false} />}
+                {focus === 'secondEmoji' && <Picker onClick={handleEmojiSelect} set="apple" showPreview={false} showSkinTones={false} />}
             </Form.Field>
-            <Button type='submit'>Submit</Button>
+            <Button disabled={disabled} type='submit'>Submit</Button>
+            <Message
+                error
+                header="Failed to Create Poll"
+                content="A poll with your title already exists or try again later."
+            />
         </Form>
     )
 }
